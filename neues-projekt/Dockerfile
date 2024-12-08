@@ -17,7 +17,7 @@ COPY . .
 
 RUN npm ci && npm run test:ci && npm run build
 
-# Ab hier beginnt das Produktive Image!
+# Ab hier beginnt das produktive Image!
 FROM node:lts-slim
 
 # Das LABEL muss hier gesetzt sein!
