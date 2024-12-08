@@ -27,7 +27,7 @@ services:
       # - ./local/ssh/id_rsa.pem:/root/.ssh/id_rsa.pem
   production:
     build:
-      context: ./nginx
+      context: ./neues-projekt/
       dockerfile: Dockerfile
     ports:
       - "3001:3000"

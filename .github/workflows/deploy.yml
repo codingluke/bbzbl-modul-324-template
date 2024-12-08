@@ -3,8 +3,9 @@ name: Deploy to Amazon AWS
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
-    branches: ["main"]
+    branches: ["main", "neues-projekt"]
 
 env:
   AWS_REGION: us-east-1
@@ -14,10 +15,51 @@ permissions:
   contents: read
 
 jobs:
+  prettier:
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Make sure the actual branch is checked out when running on pull requests
+          ref: ${{ github.head_ref }}
+          # This is important to fetch the changes to the previous commit
+          fetch-depth: 0
+      - name: Prettify code
+        uses: creyD/prettier_action@v4.3
+        with:
+          # This part is also where you can pass other options, for example:
+          same_commit: true
+          prettier_options: --write **/*.{js,md}
+          only_changed: true # Prüft nur Dateien die geändert wurden
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install headless chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: 120
+          install-chromedriver: true
+      - uses: actions/checkout@v4
+      - name: Install node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22 # lts
+          cache: "npm"
+          cache-dependency-path: neues-projekt/package-lock.json
+      - name: Test
+        working-directory: neues-projekt
+        run: npm ci && npm run test:ci
+
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
     environment: aws
+    needs: [test, prettier]
 
     steps:
       - name: Checkout
